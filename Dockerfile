@@ -15,7 +15,7 @@ FROM golang:1.23.0-alpine3.20 AS server-build
 
 WORKDIR /build
 
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY --from=ui-build /server/_ui ./server/_ui/

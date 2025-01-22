@@ -12,6 +12,9 @@ import (
 	"strings"
 
 	app "github.com/IqbalLx/inspectro-llm/server"
+	database "github.com/IqbalLx/inspectro-llm/server/src/modules/db"
+	"github.com/IqbalLx/inspectro-llm/server/src/modules/proxy"
+	"github.com/IqbalLx/inspectro-llm/server/src/modules/watcher"
 )
 
 var uiFS fs.FS
@@ -21,16 +24,6 @@ func init() {
 	uiFS, err = fs.Sub(app.UI, "_ui/build")
 	if err != nil {
 		log.Fatal("failed to get ui fs", err)
-	}
-}
-
-func main() {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", handleStatic)
-
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Println("server failed:", err)
 	}
 }
 
@@ -70,4 +63,29 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 
 	n, _ := io.Copy(w, file)
 	log.Println("file", path, "copied", n, "bytes")
+}
+
+func main() {
+	db, err := database.OpenDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer database.CloseDB(db)
+
+	if err = watcher.SyncLLM(db); err != nil {
+		log.Fatalf("LLMS config err: %v", err)
+	}
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", handleStatic)
+
+	mux.HandleFunc("/proxy/", proxy.ProxyRequest(db, false, "/proxy/"))
+	mux.HandleFunc("/proxy", proxy.ProxyRequest(db, true, "/proxy"))
+
+	log.Println("starting web on :7865")
+	if err := http.ListenAndServe(":7865", mux); err != nil {
+		log.Println("serving failed:", err)
+	}
 }
