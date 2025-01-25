@@ -23,7 +23,12 @@
     "noUncheckedSideEffectImports": true,
 
     /* Types */
-    "types": ["unplugin-fonts/client"]
+    "types": ["unplugin-fonts/client"],
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"]
 }

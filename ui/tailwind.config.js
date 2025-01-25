@@ -7,6 +7,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      colors: {
+        gray: { 925: "#050814" },
+      },
       keyframes: {
         hide: {
           from: { opacity: "1" },

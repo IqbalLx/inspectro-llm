@@ -13,6 +13,7 @@ import (
 
 	app "github.com/IqbalLx/inspectro-llm/server"
 	database "github.com/IqbalLx/inspectro-llm/server/src/modules/db"
+	"github.com/IqbalLx/inspectro-llm/server/src/modules/llmAPI"
 	"github.com/IqbalLx/inspectro-llm/server/src/modules/proxy"
 	"github.com/IqbalLx/inspectro-llm/server/src/modules/watcher"
 )
@@ -79,10 +80,12 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", handleStatic)
+	// mux.HandleFunc("/", handleStatic)
 
 	mux.HandleFunc("/proxy/", proxy.ProxyRequest(db, false, "/proxy/"))
 	mux.HandleFunc("/proxy", proxy.ProxyRequest(db, true, "/proxy"))
+
+	mux.HandleFunc("/api/llm", llmAPI.DoGetLLM(db))
 
 	log.Println("starting web on :7865")
 	if err := http.ListenAndServe(":7865", mux); err != nil {

@@ -11,37 +11,99 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as UsageImport } from './routes/usage'
+import { Route as IndexImport } from './routes/index'
+import { Route as LlmModelImport } from './routes/llm-model.'
 
 // Create/Update Routes
+
+const UsageRoute = UsageImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const IndexRoute = IndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LlmModelRoute = LlmModelImport.update({
+  id: '/llm-model/',
+  path: '/llm-model/',
+  getParentRoute: () => rootRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/usage': {
+      id: '/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof UsageImport
+      parentRoute: typeof rootRoute
+    }
+    '/llm-model/': {
+      id: '/llm-model/'
+      path: '/llm-model'
+      fullPath: '/llm-model'
+      preLoaderRoute: typeof LlmModelImport
+      parentRoute: typeof rootRoute
+    }
+  }
 }
 
 // Create and export the route tree
 
-export interface FileRoutesByFullPath {}
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/usage': typeof UsageRoute
+  '/llm-model': typeof LlmModelRoute
+}
 
-export interface FileRoutesByTo {}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/usage': typeof UsageRoute
+  '/llm-model': typeof LlmModelRoute
+}
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/': typeof IndexRoute
+  '/usage': typeof UsageRoute
+  '/llm-model/': typeof LlmModelRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths: '/' | '/usage' | '/llm-model'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to: '/' | '/usage' | '/llm-model'
+  id: '__root__' | '/' | '/usage' | '/llm-model/'
   fileRoutesById: FileRoutesById
 }
 
-export interface RootRouteChildren {}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  UsageRoute: typeof UsageRoute
+  LlmModelRoute: typeof LlmModelRoute
+}
 
-const rootRouteChildren: RootRouteChildren = {}
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  UsageRoute: UsageRoute,
+  LlmModelRoute: LlmModelRoute,
+}
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
@@ -52,7 +114,20 @@ export const routeTree = rootRoute
   "routes": {
     "__root__": {
       "filePath": "__root.tsx",
-      "children": []
+      "children": [
+        "/",
+        "/usage",
+        "/llm-model/"
+      ]
+    },
+    "/": {
+      "filePath": "index.tsx"
+    },
+    "/usage": {
+      "filePath": "usage.tsx"
+    },
+    "/llm-model/": {
+      "filePath": "llm-model..tsx"
     }
   }
 }
