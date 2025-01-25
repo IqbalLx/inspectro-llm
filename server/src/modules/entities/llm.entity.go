@@ -1,8 +1,6 @@
 package entities
 
-import (
-	"time"
-)
+import "time"
 
 type LLMProvider struct {
 	Name    string `yaml:"name" json:"name" db:"name"`
@@ -18,13 +16,13 @@ type LLM struct {
 }
 
 type LLMUsage struct {
-	Provider        string
-	ModelName       string
-	InputToken      int
-	OutputToken     int
-	TotalToken      int
-	InputTokenCost  float64
-	OutputTokenCost float64
-	TotalTokenCost  float64
-	TS              time.Time
+	Provider        string    `json:"provider,omitempty"`
+	ModelName       string    `json:"model_name,omitempty"`
+	InputToken      int       `json:"input_token"`
+	OutputToken     int       `json:"output_token"`
+	TotalToken      int       `json:"total_token"`
+	InputTokenCost  float64   `json:"input_token_cost"`
+	OutputTokenCost float64   `json:"output_token_cost"`
+	TotalTokenCost  float64   `json:"total_token_cost"`
+	TS              time.Time `json:"ts"`
 }

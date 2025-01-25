@@ -1,7 +1,16 @@
 import { DateRange, DateRangePicker } from "@/components/ui/DatePicker";
 import { Card } from "@/components/ui/Card";
 import { createFileRoute } from "@tanstack/react-router";
-import React from "react";
+import { DATE_PICKER_RANGE_PRESETS as presets } from "@/lib/constants";
+import React, { useEffect } from "react";
+import { fetchLLMUsages, LLMUsageUI, mapUsageForUI } from "@/repo/usage.repo";
+import { useQuery } from "@tanstack/react-query";
+
+// @ts-expect-error no types
+import { prettyDigits } from "prettydigits";
+import { LLMUsageCard } from "@/components/LLMUsageCard";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 
 export const Route = createFileRoute("/usage")({
   component: Usage,
@@ -12,90 +21,90 @@ export const Route = createFileRoute("/usage")({
   },
 });
 
-const presets = [
-  {
-    label: "Today",
-    dateRange: {
-      from: new Date(),
-      to: new Date(),
-    },
-  },
-  {
-    label: "Last 7 days",
-    dateRange: {
-      from: new Date(new Date().setDate(new Date().getDate() - 7)),
-      to: new Date(),
-    },
-  },
-  {
-    label: "Last 30 days",
-    dateRange: {
-      from: new Date(new Date().setDate(new Date().getDate() - 30)),
-      to: new Date(),
-    },
-  },
-  {
-    label: "Last 3 months",
-    dateRange: {
-      from: new Date(new Date().setMonth(new Date().getMonth() - 3)),
-      to: new Date(),
-    },
-  },
-  {
-    label: "Last 6 months",
-    dateRange: {
-      from: new Date(new Date().setMonth(new Date().getMonth() - 6)),
-      to: new Date(),
-    },
-  },
-  {
-    label: "Month to date",
-    dateRange: {
-      from: new Date(new Date().setDate(1)),
-      to: new Date(),
-    },
-  },
-  {
-    label: "Year to date",
-    dateRange: {
-      from: new Date(new Date().setFullYear(new Date().getFullYear(), 0, 1)),
-      to: new Date(),
-    },
-  },
-];
-
 export function Usage() {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
     presets[1].dateRange // default to last 7 day
   );
 
+  const { isPending, isError, data, error } = useQuery({
+    queryKey: ["usage", dateRange],
+    queryFn: () => fetchLLMUsages(dateRange?.from, dateRange?.to),
+    refetchInterval: 1000 * 5, // seconds
+    gcTime: 0,
+  });
+
+  const [mappedDatas, setMappedDatas] = React.useState<LLMUsageUI[]>([]);
+
+  useEffect(() => {
+    if (
+      data === undefined ||
+      dateRange?.from === undefined ||
+      dateRange.to === undefined
+    )
+      return;
+
+    setMappedDatas(mapUsageForUI(data.usages, dateRange.from, dateRange.to));
+  }, [data, dateRange?.from, dateRange?.to]);
+
+  if (isPending) {
+    return <span>Loading...</span>;
+  }
+
+  if (isError) {
+    return <span>Error: {error.message}</span>;
+  }
+
   return (
-    <div className="flex flex-col items-start w-full m-4">
-      <div className="flex flex-row-reverse w-full pr-6 justify-between">
+    <div className="flex flex-col items-start w-full m-4 gap-4">
+      <div className="flex flex-row w-full justify-between">
+        <div className="flex flex-row gap-4 grow justify-start items-start w-3/4 flex-wrap">
+          <Card className="w-1/5">
+            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
+              Total Spending
+            </h1>
+            <p className="text-gray-900 dark:text-gray-50">
+              ${prettyDigits(data?.all_time_spending.money ?? 0)}
+            </p>
+          </Card>
+          <Card className="w-1/5">
+            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
+              Current Spending
+            </h1>
+            <p className="text-gray-900 dark:text-gray-50">
+              ${prettyDigits(data?.current_spending.money ?? 0)}
+            </p>
+          </Card>
+          <Card className="w-1/5">
+            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
+              Total Tokens
+            </h1>
+            <p className="text-gray-900 dark:text-gray-50">
+              {prettyDigits(data?.all_time_spending.token ?? 0)}
+            </p>
+          </Card>
+          <Card className="w-1/5">
+            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
+              Current Tokens
+            </h1>
+            <p className="text-gray-900 dark:text-gray-50">
+              {prettyDigits(data?.current_spending.token ?? 0)}
+            </p>
+          </Card>
+        </div>
+
         <div>
           <DateRangePicker
-            showTimePicker
             presets={presets}
             value={dateRange}
             onChange={setDateRange}
             toDate={new Date()}
           />
         </div>
-
-        <div className="flex flex-row gap-4 grow justify-start items-start max-w-lg">
-          <Card className="mx-auto max-w-sm">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
-              Total Spending
-            </h1>
-            <p className="text-gray-900 dark:text-gray-50">$100</p>
-          </Card>
-          <Card className="mx-auto max-w-sm">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
-              Total Tokens
-            </h1>
-            <p className="text-gray-900 dark:text-gray-50">1024</p>
-          </Card>
-        </div>
+      </div>
+      <div className="flex flex-col gap-4 w-full">
+        {mappedDatas.map((mappedData) => (
+          <LLMUsageCard {...mappedData}></LLMUsageCard>
+        ))}
       </div>
     </div>
   );

@@ -100,3 +100,30 @@ export const formatters: FormatterFunctions = {
 export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function dateToUnix(date: Date) {
+  return Math.ceil(date.getTime() / 1000);
+}
+
+export function formatDateStr(dateStr: string) {
+  const date = new Date(dateStr);
+
+  return formatDate(date);
+}
+
+export function formatDate(date: Date) {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" }); // "Jan 25" format
+}
+
+export const getDateRange = (start: Date, end: Date): Date[] => {
+  const dates: Date[] = [];
+  const currentDate = new Date(start);
+  while (currentDate <= end) {
+    dates.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  return dates;
+};
+
+export const wrapStartDate = (date: Date) => new Date(date.setHours(0, 0, 0));
+export const wrapEndDate = (date: Date) => new Date(date.setHours(23, 59, 59));
