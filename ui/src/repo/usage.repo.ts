@@ -51,7 +51,7 @@ export const fetchLLMUsages = async (
   const startTSUnix = dateToUnix(wrapStartDate(startTS));
   const endTSUnix = dateToUnix(wrapEndDate(endTS));
   const resp = await fetch(
-    `http://localhost:7865/api/usage?startTS=${startTSUnix}&endTS=${endTSUnix}`
+    `/api/usage?startTS=${startTSUnix}&endTS=${endTSUnix}`
   );
   if (resp.status === 204) return emptyData;
 
