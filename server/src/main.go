@@ -35,27 +35,27 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	entrypoint := "index.html"
+
 	path := filepath.Clean(r.URL.Path)
 	if path == "/" { // Add other paths that you route on the UI side here
-		path = "index.html"
+		path = entrypoint
 	}
 	path = strings.TrimPrefix(path, "/")
 
 	file, err := uiFS.Open(path)
 	if err != nil {
-		if os.IsNotExist(err) {
-			log.Println("file", path, "not found:", err)
-			http.NotFound(w, r)
+		if !os.IsNotExist(err) {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		log.Println("file", path, "cannot be read:", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+
+		file, _ = uiFS.Open(entrypoint)
 	}
 
 	contentType := mime.TypeByExtension(filepath.Ext(path))
 	w.Header().Set("Content-Type", contentType)
-	if strings.HasPrefix(path, "static/") {
+	if strings.HasPrefix(path, "assets/") {
 		w.Header().Set("Cache-Control", "public, max-age=31536000")
 	}
 	stat, err := file.Stat()
@@ -63,8 +63,7 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
 	}
 
-	n, _ := io.Copy(w, file)
-	log.Println("file", path, "copied", n, "bytes")
+	io.Copy(w, file)
 }
 
 func main() {
@@ -81,7 +80,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// mux.HandleFunc("/", handleStatic)
+	mux.HandleFunc("/", handleStatic)
 
 	mux.HandleFunc("/proxy/", proxy.ProxyRequest(db, false, "/proxy/"))
 	mux.HandleFunc("/proxy", proxy.ProxyRequest(db, true, "/proxy"))

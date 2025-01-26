@@ -10,6 +10,8 @@ import {
 import { prettyDigits } from "prettydigits";
 import { BarChart, TooltipProps as BarChartTooltipProps } from "./ui/BarChart";
 
+import { ListChildComponentProps } from "react-window";
+
 const categoriesMap = {
   input_token_cost: "Input Cost",
   output_token_cost: "Output Cost",
@@ -79,43 +81,53 @@ const BarChartTooltip = ({ payload, active, label }: BarChartTooltipProps) => {
   return Tooltip(data, categoriesToShow, label);
 };
 
-export const LLMUsageCard = (llmUsage: LLMUsageUI) => {
+export const LLMUsageCard = ({
+  data,
+  index,
+  style,
+}: ListChildComponentProps<LLMUsageUI[]>) => {
+  console.log(data);
+  if (data === undefined) return;
+
+  const llmUsage = data[index];
   const llmName = capitalizeFirstLetter(llmUsage.provider);
 
   return (
-    <Card className="flex flex-col items-center gap-y-8">
-      <h2 className="font-semibold text-gray-900 dark:text-gray-50">
-        {llmUsage.model_name} — {llmName}
-      </h2>
-      <div className="w-full flex flex-row gap-8">
-        <BarChart
-          className="hidden h-72 sm:block"
-          key={llmUsage.model_name}
-          data={llmUsage.usagesUI}
-          index="date"
-          categories={["request_count"]}
-          showLegend={false}
-          customTooltip={BarChartTooltip}
-        />
-        <ComboChart
-          className="hidden h-72 sm:block"
-          data={llmUsage.usagesUI}
-          index="date"
-          enableBiaxial={true}
-          barSeries={{
-            type: "stacked",
-            colors: ["blue", "emerald"],
-            categories: ["input_token_cost", "output_token_cost"],
-            yAxisWidth: 60,
-          }}
-          lineSeries={{
-            colors: ["pink"],
-            categories: ["total_token"],
-          }}
-          customTooltip={ComboChartTooltip}
-          showLegend={false}
-        />
-      </div>
-    </Card>
+    <div style={style}>
+      <Card className="flex flex-col items-center gap-y-8">
+        <h2 className="font-semibold text-gray-900 dark:text-gray-50">
+          {llmUsage.model_name} — {llmName}
+        </h2>
+        <div className="w-full flex flex-row gap-8">
+          <BarChart
+            className="hidden h-72 sm:block"
+            key={llmUsage.model_name}
+            data={llmUsage.usagesUI}
+            index="date"
+            categories={["request_count"]}
+            showLegend={false}
+            customTooltip={BarChartTooltip}
+          />
+          <ComboChart
+            className="hidden h-72 sm:block"
+            data={llmUsage.usagesUI}
+            index="date"
+            enableBiaxial={true}
+            barSeries={{
+              type: "stacked",
+              colors: ["blue", "emerald"],
+              categories: ["input_token_cost", "output_token_cost"],
+              yAxisWidth: 60,
+            }}
+            lineSeries={{
+              colors: ["pink"],
+              categories: ["total_token"],
+            }}
+            customTooltip={ComboChartTooltip}
+            showLegend={false}
+          />
+        </div>
+      </Card>
+    </div>
   );
 };

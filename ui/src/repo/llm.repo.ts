@@ -11,7 +11,7 @@ export type LLM = {
 };
 
 export const fetchLLMS = async (): Promise<LLM[]> => {
-  const resp = await fetch("http://localhost:7865/api/llm");
+  const resp = await fetch("/api/llm");
   const json: LLM[] = await resp.json();
   return json.sort((a, b) => a.name.localeCompare(b.name));
 };

@@ -32,6 +32,7 @@
     "react": "^18.3.1",
     "react-day-picker": "8.10.1",
     "react-dom": "^18.3.1",
+    "react-window": "^1.8.11",
     "recharts": "^2.15.0",
     "tailwind-merge": "^2.6.0",
     "tailwind-variants": "^0.3.1"
@@ -44,6 +45,7 @@
     "@types/node": "^22.10.10",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",

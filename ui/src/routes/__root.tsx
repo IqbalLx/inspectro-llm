@@ -3,7 +3,6 @@ import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/Sidebar";
 import { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { QueryClientProvider } from "@tanstack/react-query";
 
 interface RouterContext {
@@ -31,8 +30,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
             </main>
           </div>
         </SidebarProvider>
-
-        <TanStackRouterDevtools />
       </>
     );
   },
