@@ -74,9 +74,12 @@ func main() {
 
 	defer database.CloseDB(db)
 
-	if err = watcher.SyncLLM(db); err != nil {
-		log.Fatalf("LLMS config err: %v", err)
+	llmCfg, err := watcher.NewLLMConfigWatcher(db)
+	if err != nil {
+		fmt.Printf("Failed to initialize config loader: %v\n", err)
+		os.Exit(1)
 	}
+	defer llmCfg.Close()
 
 	mux := http.NewServeMux()
 
