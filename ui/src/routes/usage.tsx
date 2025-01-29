@@ -10,6 +10,7 @@ import {
 } from "@/repo/usage.repo";
 import { useQuery } from "@tanstack/react-query";
 import { FixedSizeList as List } from "react-window";
+import { DollarSign, SquareCode } from "lucide-react";
 
 // @ts-expect-error no types
 import { prettyDigits } from "prettydigits";
@@ -74,34 +75,46 @@ export function Usage() {
       <div className="flex flex-row w-full justify-between">
         <div className="flex flex-row gap-4 grow justify-start items-start w-3/4 flex-wrap">
           <Card className="w-1/5">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
-              Total Spending
-            </h1>
-            <p className="text-gray-900 dark:text-gray-50">
+            <div className="flex flex-row justify-between items-center">
+              <p className="text-sm text-gray-900 dark:text-gray-50">
+                Total Spending
+              </p>
+              <DollarSign className="size-[18px] shrink-0 text-gray-500" />
+            </div>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
               ${prettyDigits(data?.all_time_spending.money ?? 0)}
             </p>
           </Card>
           <Card className="w-1/5">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
-              Current Spending
-            </h1>
-            <p className="text-gray-900 dark:text-gray-50">
+            <div className="flex flex-row justify-between items-center">
+              <p className="text-sm text-gray-900 dark:text-gray-50">
+                Current Spending
+              </p>
+              <DollarSign className="size-[18px] shrink-0 text-gray-500" />
+            </div>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
               ${prettyDigits(data?.current_spending.money ?? 0)}
             </p>
           </Card>
           <Card className="w-1/5">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
-              Total Tokens
-            </h1>
-            <p className="text-gray-900 dark:text-gray-50">
+            <div className="flex flex-row justify-between items-center">
+              <p className="text-sm text-gray-900 dark:text-gray-50">
+                Total Tokens
+              </p>
+              <SquareCode className="size-[18px] shrink-0 text-gray-500" />
+            </div>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
               {prettyDigits(data?.all_time_spending.token ?? 0)}
             </p>
           </Card>
           <Card className="w-1/5">
-            <h1 className="font-semibold text-gray-900 dark:text-gray-50">
-              Current Tokens
-            </h1>
-            <p className="text-gray-900 dark:text-gray-50">
+            <div className="flex flex-row justify-between items-center">
+              <p className="text-sm text-gray-900 dark:text-gray-50">
+                Current Tokens
+              </p>
+              <SquareCode className="size-[18px] shrink-0 text-gray-500" />
+            </div>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
               {prettyDigits(data?.current_spending.token ?? 0)}
             </p>
           </Card>

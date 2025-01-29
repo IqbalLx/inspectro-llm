@@ -30,8 +30,8 @@ export const LLMTable = (llm: LLM) => {
             <TableHead>
               <TableRow>
                 <TableHeaderCell>Model Name</TableHeaderCell>
-                <TableHeaderCell>Cost Per Milion Input</TableHeaderCell>
-                <TableHeaderCell>Cost Per Milion Output</TableHeaderCell>
+                <TableHeaderCell>Cost Per Million Input</TableHeaderCell>
+                <TableHeaderCell>Cost Per Million Output</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
