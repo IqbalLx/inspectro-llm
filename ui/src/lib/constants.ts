@@ -7,6 +7,20 @@ export const DATE_PICKER_RANGE_PRESETS = [
     },
   },
   {
+    label: "Yesterday",
+    dateRange: {
+      from: new Date(new Date().setDate(new Date().getDate() - 1)),
+      to: new Date(),
+    },
+  },
+  {
+    label: "Last 3 Days",
+    dateRange: {
+      from: new Date(new Date().setDate(new Date().getDate() - 3)),
+      to: new Date(),
+    },
+  },
+  {
     label: "Last 7 days",
     dateRange: {
       from: new Date(new Date().setDate(new Date().getDate() - 7)),

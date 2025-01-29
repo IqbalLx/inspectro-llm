@@ -86,9 +86,6 @@ export const LLMUsageCard = ({
   index,
   style,
 }: ListChildComponentProps<LLMUsageUI[]>) => {
-  console.log(data);
-  if (data === undefined) return;
-
   const llmUsage = data[index];
   const llmName = capitalizeFirstLetter(llmUsage.provider);
 
@@ -99,15 +96,6 @@ export const LLMUsageCard = ({
           {llmUsage.model_name} — {llmName}
         </h2>
         <div className="w-full flex flex-row gap-8">
-          <BarChart
-            className="hidden h-72 sm:block"
-            key={llmUsage.model_name}
-            data={llmUsage.usagesUI}
-            index="date"
-            categories={["request_count"]}
-            showLegend={false}
-            customTooltip={BarChartTooltip}
-          />
           <ComboChart
             className="hidden h-72 sm:block"
             data={llmUsage.usagesUI}
@@ -125,6 +113,17 @@ export const LLMUsageCard = ({
             }}
             customTooltip={ComboChartTooltip}
             showLegend={false}
+            intervalType={"preserveStartEnd"}
+          />
+          <BarChart
+            className="hidden h-72 sm:block"
+            key={llmUsage.model_name}
+            data={llmUsage.usagesUI}
+            index="date"
+            categories={["request_count"]}
+            showLegend={false}
+            customTooltip={BarChartTooltip}
+            intervalType={"preserveStartEnd"}
           />
         </div>
       </Card>

@@ -2,10 +2,13 @@ import {
   dateToUnix,
   formatDate,
   formatDateStr,
+  formatHour,
+  formatHourStr,
   getDateRange,
   wrapEndDate,
   wrapStartDate,
 } from "@/lib/utils";
+import { differenceInDays } from "date-fns";
 
 export type LLMUsage = {
   provider: string;
@@ -38,7 +41,8 @@ export type UsageResponse = {
 
 export const fetchLLMUsages = async (
   startTS?: Date,
-  endTS?: Date
+  endTS?: Date,
+  searchQuery?: string
 ): Promise<UsageResponse | undefined> => {
   const emptyData = {
     all_time_spending: { money: 0, token: 0 },
@@ -50,9 +54,13 @@ export const fetchLLMUsages = async (
 
   const startTSUnix = dateToUnix(wrapStartDate(startTS));
   const endTSUnix = dateToUnix(wrapEndDate(endTS));
-  const resp = await fetch(
-    `/api/usage?startTS=${startTSUnix}&endTS=${endTSUnix}`
-  );
+
+  let url = `/api/usage?startTS=${startTSUnix}&endTS=${endTSUnix}`;
+  if (searchQuery?.length) {
+    url += `&q=${searchQuery}`;
+  }
+
+  const resp = await fetch(url.toString());
   if (resp.status === 204) return emptyData;
 
   return await resp.json();
@@ -84,19 +92,19 @@ export function mapUsageForUI(
 ): LLMUsageUI[] {
   const map = new Map<string, LLMUsageDataUI[]>(); // model_name -> data
 
-  const dateRange = getDateRange(startDate, endDate);
+  const isWithin3Days = differenceInDays(endDate, startDate) <= 3;
+  const dateRange = getDateRange(startDate, endDate, isWithin3Days);
 
   responses.forEach((response) => {
-    const usagePerDayMap = new Map<
-      string,
-      LLMUsage & { request_count: number }
-    >(); // string date -> usage
+    const usageMap = new Map<string, LLMUsage & { request_count: number }>(); // string date -> usage
 
     response.usages.forEach((usage) => {
-      const dateKey = formatDateStr(usage.ts);
+      const dateKey = !isWithin3Days
+        ? formatDateStr(usage.ts)
+        : formatHourStr(usage.ts);
 
-      if (usagePerDayMap.has(dateKey)) {
-        const existing = usagePerDayMap.get(dateKey);
+      if (usageMap.has(dateKey)) {
+        const existing = usageMap.get(dateKey);
 
         existing!.input_token += usage.input_token;
         existing!.output_token += usage.output_token;
@@ -106,16 +114,18 @@ export function mapUsageForUI(
         existing!.total_token_cost += usage.total_token_cost;
         existing!.request_count += 1;
 
-        usagePerDayMap.set(dateKey, existing!);
+        usageMap.set(dateKey, existing!);
         return;
       }
 
-      usagePerDayMap.set(dateKey, { ...usage, request_count: 1 });
+      usageMap.set(dateKey, { ...usage, request_count: 1 });
     });
 
     const dataPerSpanDatetime = dateRange.map((date) => {
-      const formattedDate = formatDate(date);
-      const value = usagePerDayMap.get(formattedDate) ?? {
+      const formattedDate = !isWithin3Days
+        ? formatDate(date)
+        : formatHour(date);
+      const value = usageMap.get(formattedDate) ?? {
         input_token: 0,
         output_token: 0,
         total_token: 0,

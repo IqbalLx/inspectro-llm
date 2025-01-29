@@ -1,5 +1,6 @@
 import { DateRange, DateRangePicker } from "@/components/ui/DatePicker";
 import { Card } from "@/components/ui/Card";
+import { LLMUsageCard } from "@/components/LLMUsageCard";
 import { createFileRoute } from "@tanstack/react-router";
 import { DATE_PICKER_RANGE_PRESETS as presets } from "@/lib/constants";
 import React, { useEffect, useMemo } from "react";
@@ -14,7 +15,8 @@ import { DollarSign, SquareCode } from "lucide-react";
 
 // @ts-expect-error no types
 import { prettyDigits } from "prettydigits";
-import { LLMUsageCard } from "@/components/LLMUsageCard";
+import { SizeMe } from "react-sizeme";
+import { Input } from "@/components/ui/Input";
 
 export const Route = createFileRoute("/usage")({
   component: Usage,
@@ -30,9 +32,17 @@ export function Usage() {
     presets[1].dateRange // default to last 7 day
   );
 
+  const [searchQuery, setSearchQuery] = React.useState<string | undefined>(
+    undefined
+  );
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<
+    string | undefined
+  >(undefined);
+
   const { isPending, isError, data, error } = useQuery({
-    queryKey: ["usage", dateRange],
-    queryFn: () => fetchLLMUsages(dateRange?.from, dateRange?.to),
+    queryKey: ["usage", dateRange, debouncedSearchQuery],
+    queryFn: () =>
+      fetchLLMUsages(dateRange?.from, dateRange?.to, debouncedSearchQuery),
     refetchInterval: 1000 * 5, // seconds
     gcTime: 0,
   });
@@ -58,22 +68,17 @@ export function Usage() {
     return mapUsageForUI(LLMUsages, dateRange.from, dateRange.to);
   }, [LLMUsages, dateRange?.from, dateRange?.to]);
 
-  if (isPending) {
-    return <span>Loading...</span>;
-  }
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
-  if (isError) {
-    return <span>Error: {error.message}</span>;
-  }
-
-  // react-window implementation here still using harcoded width and height
-  // see issue here: https://github.com/bvaughn/react-window/issues/446
-  // due to my limited UI knowledge, I will leave this as my future problem
-  // people would likely spin this app in PC with wide screen anyway
   return (
-    <div className="flex flex-col items-start w-full m-4 gap-4">
-      <div className="flex flex-row w-full justify-between">
-        <div className="flex flex-row gap-4 grow justify-start items-start w-3/4 flex-wrap">
+    <div className="flex flex-col items-start w-full m-4 gap-4 pr-8">
+      <div className="flex flex-col w-full">
+        <div className="flex flex-row gap-4 grow justify-start items-start w-full flex-wrap">
           <Card className="w-1/5">
             <div className="flex flex-row justify-between items-center">
               <p className="text-sm text-gray-900 dark:text-gray-50">
@@ -120,27 +125,52 @@ export function Usage() {
           </Card>
         </div>
 
-        <div>
-          <DateRangePicker
-            presets={presets}
-            value={dateRange}
-            onChange={setDateRange}
-            toDate={new Date()}
-          />
+        <div className="mt-4 w-full">
+          <div className="flex flex-row items-center justify-start gap-4">
+            <Input
+              placeholder="Search LLM"
+              id="search"
+              name="search"
+              type="search"
+              className="w-96"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+
+            <DateRangePicker
+              presets={presets}
+              value={dateRange}
+              onChange={setDateRange}
+              toDate={new Date()}
+              className="w-80"
+            />
+          </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4 w-full">
-        <List
-          className="List"
-          height={800}
-          itemData={mappedDatas}
-          itemCount={mappedDatas.length}
-          itemSize={400}
-          width={1600}
-        >
-          {LLMUsageCard}
-        </List>
-      </div>
+
+      {isPending && <span>Loading...</span>}
+      {isError && <span>Error: {error.message}</span>}
+
+      {!isError && (
+        <SizeMe>
+          {({ size }) => {
+            return (
+              <div className="flex flex-col gap-4 w-full">
+                <List
+                  className="List"
+                  height={800}
+                  itemData={mappedDatas}
+                  itemCount={mappedDatas.length}
+                  itemSize={400}
+                  width={size.width ?? 0}
+                >
+                  {LLMUsageCard}
+                </List>
+              </div>
+            );
+          }}
+        </SizeMe>
+      )}
     </div>
   );
 }
