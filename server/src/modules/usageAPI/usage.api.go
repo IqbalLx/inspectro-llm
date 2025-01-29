@@ -97,7 +97,15 @@ func DoGetLLMUsage(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		llmUsageData, err := getLLMUsage(r.Context(), db, cvtStartTS, cvtEndTS)
+		var searchQuery string
+		q, ok := query["q"]
+		if !ok {
+			searchQuery = ""
+		} else {
+			searchQuery = q[0]
+		}
+
+		llmUsageData, err := getLLMUsage(r.Context(), db, cvtStartTS, cvtEndTS, searchQuery)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -114,7 +122,7 @@ func DoGetLLMUsage(db *sql.DB) func(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		currentSpending, err := getDateRangeSpending(r.Context(), db, cvtStartTS, cvtEndTS)
+		currentSpending, err := getDateRangeSpending(r.Context(), db, cvtStartTS, cvtEndTS, searchQuery)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

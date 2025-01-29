@@ -1,6 +1,7 @@
 // Tremor Raw cx [v0.0.0]
 
 import clsx, { type ClassValue } from "clsx";
+import { roundToNearestHours } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
 export function cx(...args: ClassValue[]) {
@@ -111,17 +112,46 @@ export function formatDateStr(dateStr: string) {
   return formatDate(date);
 }
 
+export function formatHourStr(dateStr: string) {
+  const date = new Date(dateStr);
+
+  return formatHour(date);
+}
+
 export function formatDate(date: Date) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" }); // "Jan 25" format
 }
 
-export const getDateRange = (start: Date, end: Date): Date[] => {
+export function formatHour(date: Date) {
+  return roundToNearestHours(date, {
+    roundingMethod: "ceil",
+  }).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export const getDateRange = (
+  start: Date,
+  end: Date,
+  isHourly = false
+): Date[] => {
   const dates: Date[] = [];
-  const currentDate = new Date(start);
-  while (currentDate <= end) {
+  const currentDate = wrapStartDate(start);
+  const endDate = wrapEndDate(end);
+  while (currentDate <= endDate) {
     dates.push(new Date(currentDate));
+
+    if (isHourly) {
+      currentDate.setHours(currentDate.getHours() + 1);
+      continue;
+    }
+
     currentDate.setDate(currentDate.getDate() + 1);
   }
+
   return dates;
 };
 

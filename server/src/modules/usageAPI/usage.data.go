@@ -14,7 +14,7 @@ type Spending struct {
 	Token float64 `json:"token"`
 }
 
-func getLLMUsage(ctx context.Context, db *sql.DB, startTS uint64, endTS uint64) ([]entities.LLMUsage, error) {
+func getLLMUsage(ctx context.Context, db *sql.DB, startTS uint64, endTS uint64, searchQuery string) ([]entities.LLMUsage, error) {
 	query := sqlf.
 		From("llm_usages as lu").
 		OrderBy("lu.ts ASC").
@@ -29,6 +29,10 @@ func getLLMUsage(ctx context.Context, db *sql.DB, startTS uint64, endTS uint64) 
 		Select("lu.output_token_cost").
 		Select("lu.total_token_cost").
 		Select("lu.ts")
+
+	if len(searchQuery) > 0 {
+		query.Where("LOWER(lu.provider) LIKE LOWER(?) OR LOWER(lu.model_name) LIKE LOWER(?)", fmt.Sprintf("%%%s%%", searchQuery), fmt.Sprintf("%%%s%%", searchQuery))
+	}
 
 	llmUsages := make([]entities.LLMUsage, 0)
 
@@ -85,7 +89,7 @@ func getAlltimeSpending(ctx context.Context, db *sql.DB) (Spending, error) {
 	return spending, nil
 }
 
-func getDateRangeSpending(ctx context.Context, db *sql.DB, startTS uint64, endTS uint64) (Spending, error) {
+func getDateRangeSpending(ctx context.Context, db *sql.DB, startTS uint64, endTS uint64, searchQuery string) (Spending, error) {
 	var spending Spending
 	query := sqlf.From("llm_usages as lu").
 		Where("datetime(?, 'unixepoch') <= ts", startTS).
@@ -93,6 +97,10 @@ func getDateRangeSpending(ctx context.Context, db *sql.DB, startTS uint64, endTS
 		Select("SUM(lu.total_token_cost) AS money").
 		Select("SUM(lu.total_token) AS token").
 		Limit(1)
+
+	if len(searchQuery) > 0 {
+		query.Where("LOWER(lu.provider) LIKE LOWER(?) OR LOWER(lu.model_name) LIKE LOWER(?)", fmt.Sprintf("%%%s%%", searchQuery), fmt.Sprintf("%%%s%%", searchQuery))
+	}
 
 	sql, args := query.String(), query.Args()
 
